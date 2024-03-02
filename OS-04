@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_PROCESSES 100
+struct Process {
+    int id;
+    int execution_time;
+};
+struct MinHeap {
+    struct Process* heap[MAX_PROCESSES];
+    int size;
+};
+void initMinHeap(struct MinHeap* minHeap) {
+    minHeap->size = 0;
+}
+void swap(struct Process** a, struct Process** b) {
+    struct Process* temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void insert(struct MinHeap* minHeap, struct Process* process) {
+    int i = minHeap->size;
+    minHeap->heap[i] = process;
+    minHeap->size++;
+    while (i > 0 && minHeap->heap[(i - 1) / 2]->execution_time > minHeap->heap[i]->execution_time) {
+        swap(&minHeap->heap[(i - 1) / 2], &minHeap->heap[i]);
+        i = (i - 1) / 2;
+    }
+}
+struct Process* extractMin(struct MinHeap* minHeap) {
+    if (minHeap->size == 0) {
+        return NULL;
+    }
+    struct Process* minProcess = minHeap->heap[0];
+    minHeap->size--;
+    minHeap->heap[0] = minHeap->heap[minHeap->size];
+    int i = 0;
+    while (2 * i + 1 < minHeap->size) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        int smallest = i;
+
+        if (left < minHeap->size && minHeap->heap[left]->execution_time < minHeap->heap[smallest]->execution_time) {
+            smallest = left;
+        }
+        if (right < minHeap->size && minHeap->heap[right]->execution_time < minHeap->heap[smallest]->execution_time) {
+            smallest = right;
+        }
+
+        if (smallest != i) {
+            swap(&minHeap->heap[i], &minHeap->heap[smallest]);
+            i = smallest;
+        } else {
+            break;
+        }
+    }
+    return minProcess;
+}
+void printMinHeap(struct MinHeap* minHeap) {
+    for (int i = 0; i < minHeap->size; i++) {
+        printf("Process ID: %d, Execution Time: %d\n", minHeap->heap[i]->id, minHeap->heap[i]->execution_time);
+    }
+}
+int main() {
+    struct MinHeap minHeap;
+    initMinHeap(&minHeap);
+    struct Process p1 = {1, 4};
+    insert(&minHeap, &p1);
+    struct Process p2 = {2 ,5};
+    insert(&minHeap, &p2);
+    struct Process p3 = {3, 15};
+    insert(&minHeap, &p3);
+    struct Process p4 = {4, 7};
+    insert(&minHeap, &p4);
+    printf("Processes in the min-heap:\n");
+    printMinHeap(&minHeap);
+    struct Process* minProcess = extractMin(&minHeap);
+    if (minProcess != NULL) {
+        printf("\nProcess with the smallest execution time:\n");
+        printf("Process ID: %d, Execution Time: %d\n", minProcess->id, minProcess->execution_time);
+    } else {
+        printf("\nNo processes in the min-heap\n");
+    }
+
+    return 0;
+}
