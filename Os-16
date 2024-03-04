@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_EMPLOYEES 100
+
+struct Employee {
+    int emp_id;
+    char name[50];
+    float salary;
+};
+
+void addEmployee(FILE *file) {
+    struct Employee emp;
+
+    printf("Enter Employee ID: ");
+    scanf("%d", &emp.emp_id);
+    printf("Enter Employee Name: ");
+    scanf("%s", emp.name);
+    printf("Enter Employee Salary: ");
+    scanf("%f", &emp.salary);
+
+    fseek(file, (emp.emp_id - 1) * sizeof(struct Employee), SEEK_SET);
+    fwrite(&emp, sizeof(struct Employee), 1, file);
+}
+
+void displayEmployee(FILE *file, int emp_id) {
+    struct Employee emp;
+
+    fseek(file, (emp_id - 1) * sizeof(struct Employee), SEEK_SET);
+    fread(&emp, sizeof(struct Employee), 1, file);
+
+    if (emp.emp_id != 0) {
+        printf("Employee ID: %d\n", emp.emp_id);
+        printf("Employee Name: %s\n", emp.name);
+        printf("Employee Salary: %.2f\n", emp.salary);
+    } else {
+        printf("Employee with ID %d does not exist.\n", emp_id);
+    }
+}
+
+int main() {
+    FILE *file;
+    file = fopen("employees.dat", "rb+");
+
+    if (file == NULL) {
+        printf("File does not exist. Creating a new file.\n");
+        file = fopen("employees.dat", "wb+");
+        if (file == NULL) {
+            printf("Unable to create file.\n");
+            return 1;
+        }
+    }
+
+    int choice, emp_id;
+    do {
+        printf("\nEmployee Management System\n");
+        printf("1. Add Employee\n");
+        printf("2. Display Employee\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                addEmployee(file);
+                break;
+            case 2:
+                printf("Enter Employee ID: ");
+                scanf("%d", &emp_id);
+                displayEmployee(file, emp_id);
+                break;
+            case 3:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter a number between 1 and 3.\n");
+        }
+    } while (choice != 3);
+
+    fclose(file);
+    return 0;
+}
